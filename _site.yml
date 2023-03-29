@@ -1,0 +1,17 @@
+name: "."
+title: "Museum Slack Study Data"
+description: |
+output_dir: "docs"
+navbar:
+  right:
+     - text: "MoMA Task 1"
+      menu:
+       - text: "Overview"
+         href: index.html
+       - text: "Artist Data Draft"
+         href: artists_draft_distill.html
+       - text: "Artwork Data Draft"
+         href: artwork_draft_distill.html
+       - text: "Exhibition Data Draft"
+         href: exhibitions_draft_distill.html
+output: distill::distill_article

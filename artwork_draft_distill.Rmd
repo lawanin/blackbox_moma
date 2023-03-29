@@ -1,0 +1,233 @@
+---
+title: "Artwork Draft"
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(rmarkdown)
+
+read_csv("moma_files/collection-master/Artworks.csv") -> x 
+```
+
+```{r, warning = FALSE, message = FALSE}
+
+# Note: number of artists here is not the same asd artists csv. Odd. 
+
+# x %>% 
+#   select(ConstituentID) %>% 
+#   separate_rows(ConstituentID, sep = ", ") %>% 
+#   unique() 
+
+total <- 140848
+```
+
+### Original Table
+
+```{r}
+paged_table(x)
+```
+
+### Artists and Artworks
+
+13,736 artists have work of art attributed to them in the MoMa dataset. Note that this number is fewer than the number of artists in the artists spreadsheet.
+
+Over 50% of artists have a single work of artwork in the MoMA. 
+The top 1% of account for 41% of artworks in the MoMA.
+
+Percentiles: Works per Artist
+```{r, warning = FALSE, message = FALSE}
+x %>% 
+  group_by(Artist, ConstituentID) %>% 
+  summarize(`Number of Works per Artist` = n()) %>% 
+  filter(is.na(ConstituentID) == FALSE) %>% 
+  arrange(desc(`Number of Works per Artist`)) %>% 
+  ungroup()-> y
+
+round(quantile(y$`Number of Works per Artist`, c(seq(0, .9, .1), .95, .99, 1)), 0)
+
+# y %>%
+#   group_by(`Number of Works per Artist` >=  144) %>%
+#   summarize(sum = sum(`Number of Works per Artist`)) %>%
+#   mutate(percent = sum / sum(sum))
+```
+
+```{r, warning = FALSE, message = FALSE}
+y %>% 
+  slice(1:10) %>% 
+  ggplot(aes(`Number of Works per Artist`, fct_reorder(Artist, `Number of Works per Artist`))) +
+  geom_col() +
+  labs(title = "Top 10 Artists by Most Works in the MoMA", 
+       x = "", 
+       y = "",
+       caption = "Source: MoMA")
+```
+
+
+### Dates of Artwork: Requires Cleaning
+
+Most works of art have dates. These, however, sometimes have more information than just a 4 digit year (e.g. c. 1930, 1930-32, after 1930, 1930, published 1932.). Simplification of this field will be required before further analysis. 
+
+```{r, warning = FALSE, message = FALSE}
+# x %>% 
+#   select(Date) %>% 
+#   mutate(circa = if_else(str_detect(Date, "c\\."), TRUE, FALSE),
+#          Date = str_replace_all(Date, "c\\.[ ]*", "")) %>% 
+#   mutate(extra_date_bool = if_else(str_detect(Date, "^[0-9]*[-–][0-9]*$"), TRUE, FALSE),
+#          extra_date = if_else(str_detect(Date, "^[0-9]*[-–][0-9]*$"), str_replace_all(Date, "[0-9]*(?=[-–])", ""), ""),
+#          extra_date = na_if(extra_date, ""),
+#          Date = str_replace_all(Date, "[-–].*", "")) %>% 
+#   mutate(unknown = if_else(Date == "Unknown", TRUE, FALSE),
+#          Date = na_if(Date, "Unknown")) %>% 
+#   mutate(after = if_else(str_detect(Date, "^[Aa]fter "), TRUE, FALSE),
+#          Date = if_else(str_detect(Date, "^[Aa]fter "), str_replace_all(Date, "[Aa]fter ", ""), Date)) %>% 
+#   filter(str_detect(Date, "[^0-9]"))
+#   
+# 
+# x %>% 
+#   filter(str_detect(Date, "c\\."))
+```
+
+### Classifications of Artworks
+
+There are 36 classifications of works of art. Most classifications are based on medium, with the exception of Frank Llloyd Wright Archive.
+Only 1 work of art has no classification. 678 works of art are noted as "not assigned".
+
+```{r, warning = FALSE, message = FALSE}
+x %>% 
+  group_by(Classification) %>% 
+  summarize(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  slice(1:20) %>% 
+  ggplot(aes(number, fct_reorder(Classification, number))) +
+  geom_col() +
+  scale_x_continuous(breaks = seq(0, 40000, 3000), minor_breaks = NULL) +
+  labs(title = "Top 20 Classifications of Artworks in MoMA Dataset", 
+       y = "Classification", 
+       x = "Number of Works of Art", 
+       caption = "MoMA")
+```
+
+### Media: An Unwieldy Category 
+
+There are 21,641 distinct classes of media. 
+
+```{r, warning = FALSE, message = FALSE}
+x %>% 
+  group_by(Medium) %>% 
+  summarize(n()) %>% 
+  arrange(desc(`n()`)) %>% 
+  mutate(Medium = replace_na(Medium, "NA")) %>% 
+  slice(1:30) %>% 
+  ggplot(aes(y = fct_reorder(Medium, `n()`), x = `n()`)) +
+  geom_col() +
+  labs(title = "Top 30 Media of MoMA Artworks", 
+       subtitle = "The top 30 media contain 30% of the museum's artworks", 
+       x = "Number of Artworks", 
+       y = "",
+       caption = "Source: MoMA")
+```
+
+
+```{r, warning = FALSE, message = FALSE}
+# x %>% 
+#   group_by(Department) %>% 
+#   summarize(n()) %>% 
+#   arrange(desc(`n()`)) %>% 
+#   geom
+```
+
+### Credit Lines
+
+There are over 7200 distinct Credit Lines. 
+
+These include Credit Lines such as "Gift of the artist" which, though they are the same in the data, indicate more than one real-life donor. "Purchase" is another  common Credit Line that does not indicate a real life donor. 17% of works belong to such credit lines. 
+
+Roughly 1% of works do not have a credit line given in the dataset.
+
+```{r, warning = FALSE, message = FALSE}
+
+# Note anonymous gift and given anonymously, such things must be cleaned
+x %>%
+  filter(!(CreditLine %in% c("Gift of the artist", "Purchase", "Anonymous gift", "Given anonymously", "Gift of the designer", "Gift of the architect", "Gift of the designers", "Gift of the architects")) == TRUE) %>%
+  filter(is.na(CreditLine) == FALSE) %>%
+  filter(is.na(DateAcquired) == FALSE) %>%
+  mutate(DateAcquired = year(DateAcquired)) %>%
+  group_by(CreditLine) %>%
+  summarize(range = (max(DateAcquired) - min(DateAcquired)) + 1, n()) -> z
+# 
+# x %>% filter(!(CreditLine %in% c("Gift of the artist", "Purchase", "Anonymous gift", "Given anonymously", "Gift of the designer", "Gift of the architect", "Gift of the designers", "Gift of the architects")) == FALSE) %>% 
+#   summarize(n(), n() / total)
+# 
+# x %>% 
+#   filter(is.na(CreditLine) == TRUE) %>% 
+#   summarize(n(), n() / total)
+```
+
+Of the credit lines that do point to individual donors (henceforth individual credit lines), the majority have only 
+a single majority in the museum. The list of percentiles below show that fewer than 50%
+of individual credit lines have more than 1 work, and only 10% of individual credit lines have more than 17 works.
+
+The top 10% of individual credit lines are responsible for 10% for 65% of works in the MoMA.
+
+Percentiles: Works per Credit Line
+```{r, warning = FALSE, message = FALSE}
+quantile(z$`n()`, probs = c(seq(0, .9, .1), .95, .99, 1))
+
+# z %>% 
+#   filter(`n()` >= 17) %>% 
+#   summarize(sum(`n()`), sum(`n()`) / total)
+```
+
+Most credit lines are only "active" for one year. The length of time for which a credit line is active 
+is a measure obtained by subtracting the year in which the credit line's last work was acquired
+from the year in which the credit line's first work was acquired, then adding 1. 
+The list below gives percentiles for the number of years for which a credit line is active.
+
+Percentiles: Years Active for all Credit Lines
+```{r, warning = FALSE, message = FALSE}
+quantile(z$range, probs = c(seq(0, .9, .1), .95, .99, 1))
+```
+
+Credit lines that have more works in the museum also tend to be credit lines that have longer lifespans. 
+
+Percentiles: Years Active the 10% of Credit Lines with the Most Works
+```{r, warning = FALSE, message = FALSE}
+round(quantile((z %>% filter(`n()` >= 17))$range, probs = c(seq(0, .9, .1), .95, .99, 1)), digits = 0)
+```
+
+### Gross Quality Check: Percent of blank values in each column
+
+```{r, warning = FALSE, message = FALSE}
+paged_table (
+  x %>% 
+  summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
+  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

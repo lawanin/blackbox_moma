@@ -1,0 +1,163 @@
+---
+title: "MoMA Data Set Overview"
+description: |
+site: distill::distill_website
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(lubridate)
+```
+
+```{r, warning = FALSE, message = FALSE}
+read_csv("moma_files/collection-master/Artworks.csv", ) -> x
+
+x %>% 
+  filter(!(CreditLine %in% c("Gift of the artist", "Purchase", "Anonymous gift", "Given anonymously", "Gift of the designer", "Gift of the architect", "Gift of the designers", "Gift of the architects")) == TRUE) %>% 
+  filter(is.na(CreditLine) == FALSE) %>% 
+  filter(is.na(DateAcquired) == FALSE) %>% 
+  mutate(DateAcquired = year(DateAcquired)) %>% 
+  group_by(CreditLine) %>% 
+  summarize(range = (max(DateAcquired) - min(DateAcquired)) + 1, n()) -> z
+```
+
+## Executive Summary 
+
+The MoMA dataset is likely the most complete available source for information on
+the artwork, artists, exhibitions of the museum. 
+
+The dataset has information in most of the preliminary categories of information
+identified for the project, particularly, institutions, artists, artowrks, 
+curators, supporters, older exhibitions, and dates.
+
+The dataset, however, also lacks information in some of these preliminary categories  of information:
+
+* While the information on artworks and artists is current and regularly updated, 
+information on exhibitions is only available for exhibitions that occurred in 1989 
+or before.
+
+* Outside of the department of a work, no further "collection" or subsample is
+given in the dataset as it is. 
+
+* There is no information on ticket sales of exhibitions or their critical acclaim. 
+
+* Aside from the credit lines attached to specific works, there is no information 
+in the dataset on acts of donation. 
+
+* Few fields are 100% complete or standardized. These missing fields can pile up 
+(v.s. below with curators). Even when information is available in the vast majority 
+of cases, occasional gaps and errors will limit accuracy. 
+
+
+### 1. Institutions
+
+The data set gives information on a single institution: The Modern Museum of American Art (MoMA)
+
+### 2. Artists
+
+The dataset includes a thorough (v.i.) listing of artists with artworks in the MoMA. 
+For most, the artist's name, nationality, gender, birth year, and death year are
+in the data set. 
+
+### 3. Artworks
+
+The dataset includes a thorough listing of artworks in the MoMA. According to  
+[documentation](https://github.com/MuseumofModernArt/collection/blob/master/README.md) provided by the MoMA with the dataset, the Museum's website contains around 98,000 records, whereas the dataset contains around 140,000.
+
+For most artworks, the title of the work, the artist, the date, classification (painting, drawing, etc.), 
+ medium (e.g. "Ink and cut-and-pasted painted pages on paper"), some form of dimensions, 
+credit line (e.g. Purchase; Gift of the architect in honor of Lily Auchincloss), 
+department and date of acquisition are avilable in the data set. 
+
+### 4. Curators
+
+There is someone listed in the role of curator for about 75% of the 1,735 exhibitions 
+in the dataset. For most of these, a role as described in the press release are available
+in the data set.
+
+For roughly half of these, nationality, gender, birth year, and death year are 
+available in the data set.
+
+For a minority of these, senior titles at the museum, dates of tenure of those titles
+are available in the data set. 
+
+
+```{r}
+
+# move this calculation
+# x %>%
+#   group_by(ExhibitionNumber, ExhibitionTitle) %>%
+#   mutate(curator = if_else(str_detect(ExhibitionRole, "[Cc]urator"), TRUE, FALSE)) %>%
+#   summarize(sum_curator = sum(curator)) %>%
+#   group_by(sum_curator) %>%
+#   summarize(n()) %>%
+#   mutate(percent = `n()` / sum(`n()`))
+
+# x %>% 
+#   filter(ExhibitionRole == "Curator") %>% 
+#   summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
+#   mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
+``` 
+
+### 5. Collections
+
+The only subsample in the dataset as it is given is Department. 
+
+One could, based on other information in the dataset, create and describe 
+characteristics of a subsample or "collection" of works, e.g. works by American artists.
+
+### 6. Supporters
+
+About 99% of artworks in the MoMA have a listed credit line. About 82% of these point
+to an individual donor or foundation. Examples of those that do not themselves point 
+to an individual include "Purchase" or "Gift of the artist."
+
+About half of credit lines pointing to individual donors or foundations have donated only
+a single work. The top 10% of credit lines by most works in the museum account for 
+65% of works in the museum.
+
+Percentiles: Works per Credit Line
+
+```{r}
+quantile(z$`n()`, probs = c(seq(0, .9, .1), .95, .99, 1))
+```
+
+By taking information from works associated with the credit line, one is also able 
+to find information on when and for how long a credit line was active.
+
+### 7. Exhibitions
+
+The dataset provides a list of all MoMA exhibitions form 1929 to 1989. For most of these,
+the title of the exhibition, the opening and closing dates are available. 
+
+People and institutions involved in each exhibition, their roles (e.g. artists, curators, designers), 
+and other information (v.s.) are available.
+
+### 8. Ticket Sales
+
+The dataset contains no information on tickets sold by exhibitions. 
+
+### 9. Critical Acclaim
+
+The dataset contains no information on critical acclaim of exhibitions or other events. 
+
+### 10. Dates
+
+The following is a list of all dates available in the dataset:
+
+* Artist Birth Year and Death Year
+* Year of Creation of Artwork
+* Year of Acquisition of Artwork
+* Opening and Closing Date (MDY) of Exhibition
+* Birth and Death Year of Entity involved in Exhibition
+* Start and End Year of Tenure of Museum Directors and Department Heads
+* Birth and Death Year of Museum Directors and Department Heads
+
+### 11. Donations
+
+Outside of the names of credit lines associated with specific works (v.s.), there
+is no information on specific contributions to the institution. 
+
+
+
