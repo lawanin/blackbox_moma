@@ -120,6 +120,7 @@ a single work. The top 10% of credit lines by most works in the museum account f
 Percentiles: Works per Credit Line
 
 ```{r}
+options(width = 500)
 quantile(z$`n()`, probs = c(seq(0, .9, .1), .95, .99, 1))
 ```
 

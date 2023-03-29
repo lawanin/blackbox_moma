@@ -91,7 +91,11 @@ roles, e.g. Designer and Artist.
 Over 60% of artists have only been exhibited once.
 The top 5% of artists make up 46% of the total number of individual artist exhibitions.
 
+Percentiles: Number of Times Artists have been Exhibited
+
 ```{r, warning = FALSE, message = FALSE}
+options(width = 500)
+
 total_artists_exhibited = 25458 + 7079
 
 x %>% 

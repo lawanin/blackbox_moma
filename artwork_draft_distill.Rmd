@@ -41,7 +41,10 @@ Over 50% of artists have a single work of artwork in the MoMA.
 The top 1% of account for 41% of artworks in the MoMA.
 
 Percentiles: Works per Artist
+
 ```{r, warning = FALSE, message = FALSE}
+options(width = 500)
+
 x %>% 
   group_by(Artist, ConstituentID) %>% 
   summarize(`Number of Works per Artist` = n()) %>% 
@@ -176,7 +179,10 @@ of individual credit lines have more than 1 work, and only 10% of individual cre
 The top 10% of individual credit lines are responsible for 10% for 65% of works in the MoMA.
 
 Percentiles: Works per Credit Line
+
 ```{r, warning = FALSE, message = FALSE}
+options(width = 500)
+
 quantile(z$`n()`, probs = c(seq(0, .9, .1), .95, .99, 1))
 
 # z %>% 
@@ -190,14 +196,20 @@ from the year in which the credit line's first work was acquired, then adding 1.
 The list below gives percentiles for the number of years for which a credit line is active.
 
 Percentiles: Years Active for all Credit Lines
+
 ```{r, warning = FALSE, message = FALSE}
+options(width = 500)
+
 quantile(z$range, probs = c(seq(0, .9, .1), .95, .99, 1))
 ```
 
 Credit lines that have more works in the museum also tend to be credit lines that have longer lifespans. 
 
 Percentiles: Years Active the 10% of Credit Lines with the Most Works
+
 ```{r, warning = FALSE, message = FALSE}
+options(width = 500)
+
 round(quantile((z %>% filter(`n()` >= 17))$range, probs = c(seq(0, .9, .1), .95, .99, 1)), digits = 0)
 ```
 
