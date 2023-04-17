@@ -1,5 +1,5 @@
 ---
-title: "Artists Draft"
+title: "Artists"
 date: "`r Sys.Date()`"
 output: distill::distill_article
 ---
@@ -15,7 +15,8 @@ read_csv("moma_files/collection-master/Artists.csv") %>%
          Gender = str_replace_all(Gender, "Non-binary", "Non-Binary")) -> x
 ```
 
-There are 15,243 different artists in the MoMa data set. The first 10,00 are listed in the table below.
+There are 15,243 different artists in the MoMa spreadsheet, Artists.csv. The first 10,00 are listed in the table below.
+
 
 ### Original Table*
 
