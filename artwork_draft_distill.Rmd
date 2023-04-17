@@ -1,5 +1,5 @@
 ---
-title: "Artwork"
+title: "Artworks"
 date: "`r Sys.Date()`"
 output: distill::distill_article
 ---
