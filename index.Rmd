@@ -25,7 +25,7 @@ x %>%
 ## Executive Summary 
 
 The MoMA dataset is likely the most complete available source for information on
-the artwork, artists, exhibitions of the museum. 
+the museum's artwork, artists, and older exhibitions.
 
 The dataset has information in most of the preliminary categories of information
 identified for the project, particularly, institutions, artists, artowrks, 
@@ -79,7 +79,7 @@ in the data set.
 For roughly half of these, nationality, gender, birth year, and death year are 
 available in the data set.
 
-For a minority of these, senior titles at the museum, dates of tenure of those titles
+For a minority of these, senior titles at the museum and dates of tenure of those titles
 are available in the data set. 
 
 
@@ -130,7 +130,7 @@ to find information on when and for how long a credit line was active.
 ### 7. Exhibitions
 
 The dataset provides a list of all MoMA exhibitions form 1929 to 1989. For most of these,
-the title of the exhibition, the opening and closing dates are available. 
+the title of the exhibition and the opening and closing dates are available. 
 
 People and institutions involved in each exhibition, their roles (e.g. artists, curators, designers), 
 and other information (v.s.) are available.

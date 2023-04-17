@@ -13,7 +13,7 @@ library(rmarkdown)
 ```
 
 ```{r, warning = FALSE, message = FALSE}
-read_csv("moma_files/exhibition/MoMaExhibitions1929to1989.csv", ) -> x 
+read_csv("../moma_files/exhibition/MoMaExhibitions1929to1989.csv", ) -> x 
 ```
 
 ### Original Table
@@ -153,11 +153,25 @@ x %>%
 
 ### Gross Quality Check:Percent of blank values in each column
 ```{r, warning = FALSE, message = FALSE}
-paged_table(
   x %>% 
   summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
-  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
-  )
+  mutate(across(everything(), ~paste0(round(.*100, 5), "%"))) %>% 
+  unlist()
+
+  # x %>% 
+  # filter(str_detect(ExhibitionRole, "Curator") == TRUE) %>% 
+  # summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
+  # mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
+
+x %>%
+  mutate(curator = str_detect(ExhibitionRole, "[Cc]urator")) %>%
+  group_by(ExhibitionNumber) %>%
+  mutate(sum = sum(curator)) %>% 
+  filter(sum == 0) %>% 
+  select(ExhibitionNumber, ExhibitionBeginDate) %>% 
+  unique() %>% 
+  ggplot(aes(x = year(mdy(ExhibitionBeginDate)))) +
+  geom_histogram()
 ```
 
 

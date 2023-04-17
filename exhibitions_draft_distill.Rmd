@@ -1,5 +1,5 @@
 ---
-title: "Exhibitions Draft"
+title: "Exhibitions"
 date: "`r Sys.Date()`"
 output: distill::distill_article
 ---
@@ -16,14 +16,26 @@ read_csv("moma_files/exhibition/MoMaExhibitions1929to1989.csv", ) -> x
 ```
 
 ### Original Table
+
+Dataset contains rows of information for each constituent (e.g. artists, curators, institutions) involved in 1735 exhibitions. This structure means that there are multiple rows for each exhibition.
+
+First 10,000 constituents are in the table below.
+
 ```{r}
 paged_table(x)
 ```
 
+### Gross Quality Check:Percent of blank values in each column
+```{r, warning = FALSE, message = FALSE}
+paged_table(
+  x %>% 
+  summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
+  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
+  )
+```
+
 ### Number and Size of Exhibitions
 
-Dataset contains rows of information for each constituent (e.g. artists, curators, institutions) involved in a MoMA exhibition.
-1735 exhibitions. 
 Average of 20 unique constituents per exhibition. The smallest exhibition has 1 constitutent and the largest has 338. 
 
 ```{r, warning = FALSE, message = FALSE}
@@ -154,13 +166,32 @@ x %>%
 #   summarize(mean(`n()`), max(`n()`), min(`n()`))
 ```
 
-### Gross Quality Check:Percent of blank values in each column
-```{r, warning = FALSE, message = FALSE}
-paged_table(
-  x %>% 
-  summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
-  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
-  )
+### Curators
+
+There is someone listed in the role of curator for about 75% of the 1,735 exhibitions 
+in the dataset. For most of these, a role as described in the press release are available
+in the data set.
+
+There are exhibitions without listed curators in all decades. The plurality are in the 1940s.
+
+```{r}
+x %>%
+  mutate(curator = str_detect(ExhibitionRole, "[Cc]urator")) %>%
+  group_by(ExhibitionNumber) %>%
+  mutate(sum = sum(curator)) %>% 
+  filter(sum == 0) %>% 
+  select(ExhibitionNumber, ExhibitionBeginDate) %>% 
+  unique() %>% 
+  ggplot(aes(x = year(mdy(ExhibitionBeginDate)))) +
+  geom_histogram(boundary = 1930, binwidth = 5, color = "white") +
+  labs(title = "Years of Exhibitions for which no Curator is listed", 
+       y = "", 
+       x = "", 
+       caption = "Source: MoMA") +
+  scale_x_continuous(breaks = seq(1930, 1990, 5))
 ```
+
+
+
 
 

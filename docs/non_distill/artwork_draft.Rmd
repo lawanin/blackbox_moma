@@ -12,7 +12,7 @@ library(lubridate)
 library(ggplot2)
 library(rmarkdown)
 
-read_csv("moma_files/collection-master/Artworks.csv") -> x 
+read_csv("../moma_files/collection-master/Artworks.csv") -> x 
 ```
 
 ```{r, warning = FALSE, message = FALSE}
@@ -176,12 +176,22 @@ of individual credit lines have more than 1 work, and only 10% of individual cre
 The top 10% of individual credit lines are responsible for 10% for 65% of works in the MoMA.
 
 Percentiles: Works per Credit Line
-```{r, warning = FALSE, message = FALSE}
+```{r, warning = FALSE, message = FALSE, layout = "l-page", fig.width = 10, fig.length = 8}
 quantile(z$`n()`, probs = c(seq(0, .9, .1), .95, .99, 1))
 
 # z %>% 
 #   filter(`n()` >= 17) %>% 
 #   summarize(sum(`n()`), sum(`n()`) / total)
+
+# z %>% 
+#   arrange(desc(`n()`)) %>% 
+#   slice(1:10) %>% 
+#   ggplot(aes(x= `n()`, y = fct_reorder(CreditLine, `n()`))) +
+#   geom_col() +
+#   labs(title = "Top Credit Lines by Number of Works", 
+#        x = "", 
+#        y = "", 
+#        caption = "Source: MoMA")
 ```
 
 Most credit lines are only "active" for one year. The length of time for which a credit line is active 
@@ -204,11 +214,17 @@ round(quantile((z %>% filter(`n()` >= 17))$range, probs = c(seq(0, .9, .1), .95,
 ### Gross Quality Check: Percent of blank values in each column
 
 ```{r, warning = FALSE, message = FALSE}
-paged_table (
   x %>% 
+  select(-c(ArtistBio, Nationality, BeginDate, EndDate, Gender)) %>% 
   summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
-  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
-)
+  mutate(across(everything(), ~paste0(round(.*100, 5), "%"))) %>% 
+  unlist()
+
+x %>% 
+  group_by(is.na(`Circumference (cm)`)) %>% 
+  summarize(n())
+
+x
 ```
 
 

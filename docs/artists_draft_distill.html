@@ -90,8 +90,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
   <!--  https://schema.org/Article -->
-  <meta property="article:published" itemprop="datePublished" content="2023-03-29"/>
-  <meta property="article:created" itemprop="dateCreated" content="2023-03-29"/>
+  <meta property="article:published" itemprop="datePublished" content="2023-04-17"/>
+  <meta property="article:created" itemprop="dateCreated" content="2023-04-17"/>
 
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
   <meta property="og:title" content="Museum Slack Study Data: Artists Draft"/>
@@ -107,7 +107,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_rmarkdown_metadata-->
 
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Artists Draft"]},{"type":"character","attributes":{},"value":["2023-03-29"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Artists Draft"]},{"type":"character","attributes":{},"value":["2023-04-17"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   <!--radix_placeholder_navigation_in_header-->
@@ -2054,7 +2054,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Artists Draft","authors":[],"publishedDate":"2023-03-29T00:00:00.000+00:00"}
+{"title":"Artists Draft","authors":[],"publishedDate":"2023-04-17T00:00:00.000+00:00"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2095,6 +2095,7 @@ MoMA Task 1
 
 
 <div class="d-article">
+<p>There are 15,243 different artists in the MoMa data set. They and their unique characteristics are listed in a single file, Artists.csv</p>
 <h3 id="original-table">Original Table*</h3>
 <div class="layout-chunk" data-layout="l-body">
 <div data-pagedtable="false">
@@ -2103,8 +2104,15 @@ MoMA Task 1
   </script>
 </div>
 </div>
-<p>*The table as shown has been modified to standardized capitilization in the gender field.</p>
-<p>There are 15,243 different artists in the MoMa data set. They and their unique characteristics are listed in a single file, Artists.csv</p>
+<p>*The table as shown has been modified to standardize capitalization in the gender field.</p>
+<h3 id="gross-quality-check-percent-of-blank-values-in-each-column">Gross Quality Check: Percent of blank values in each column</h3>
+<div class="layout-chunk" data-layout="l-body">
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["ConstituentID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["DisplayName"],"name":[2],"type":["chr"],"align":["left"]},{"label":["ArtistBio"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Nationality"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Gender"],"name":[5],"type":["chr"],"align":["left"]},{"label":["BeginDate"],"name":[6],"type":["chr"],"align":["left"]},{"label":["EndDate"],"name":[7],"type":["chr"],"align":["left"]},{"label":["Wiki QID"],"name":[8],"type":["chr"],"align":["left"]},{"label":["ULAN"],"name":[9],"type":["chr"],"align":["left"]}],"data":[{"1":"0%","2":"0%","3":"14.53126%","4":"16.21728%","5":"20.76363%","6":"0%","7":"0%","8":"78.6853%","9":"80.76494%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
 <div class="layout-chunk" data-layout="l-body">
 
 </div>
@@ -2127,14 +2135,6 @@ MoMA Task 1
 <p>Most artists are male. There are 3,165 artists for whom a gender is not given.</p>
 <div class="layout-chunk" data-layout="l-body">
 <p><img src="artists_draft_distill_files/figure-html5/gender-1.png" width="624" /><img src="artists_draft_distill_files/figure-html5/gender-2.png" width="624" /></p>
-</div>
-<h3 id="gross-quality-check-percent-of-blank-values-in-each-column">Gross Quality Check: Percent of blank values in each column’</h3>
-<div class="layout-chunk" data-layout="l-body">
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["ConstituentID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["DisplayName"],"name":[2],"type":["chr"],"align":["left"]},{"label":["ArtistBio"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Nationality"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Gender"],"name":[5],"type":["chr"],"align":["left"]},{"label":["BeginDate"],"name":[6],"type":["chr"],"align":["left"]},{"label":["EndDate"],"name":[7],"type":["chr"],"align":["left"]},{"label":["Wiki QID"],"name":[8],"type":["chr"],"align":["left"]},{"label":["ULAN"],"name":[9],"type":["chr"],"align":["left"]}],"data":[{"1":"0%","2":"0%","3":"14.53126%","4":"16.21728%","5":"20.76363%","6":"0%","7":"0%","8":"78.6853%","9":"80.76494%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
 </div>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->

@@ -15,6 +15,7 @@ read_csv("moma_files/collection-master/Artists.csv") %>%
          Gender = str_replace_all(Gender, "Non-binary", "Non-Binary")) -> x
 ```
 
+There are 15,243 different artists in the MoMa data set. The first 10,00 are listed in the table below.
 
 ### Original Table*
 
@@ -22,11 +23,17 @@ read_csv("moma_files/collection-master/Artists.csv") %>%
 paged_table(x)
 ```
 
-*The table as shown has been modified to standardized capitilization in the gender field. 
+*The table as shown has been modified to standardize capitalization in the gender field. 
 
-There are 15,243 different artists in the MoMa data set.
-They and their unique characteristics are listed in a single file, Artists.csv
+### Gross Quality Check: Percent of blank values in each column
 
+```{r}
+paged_table(
+  x %>% 
+  summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
+  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
+)
+```
 
 ```{r, duplicate artists names, message= FALSE, warning=FALSE}
 
@@ -120,14 +127,4 @@ x %>%
        fill = "Gender",
        caption = "Source: MoMA") +
   scale_fill_manual(values = c(Female = "pink", Male = "light blue", 'Non-Binary' = "black", 'NA' = "grey"))
-```
-
-### Gross Quality Check: Percent of blank values in each column'
-
-```{r}
-paged_table(
-  x %>% 
-  summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
-  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
-)
 ```

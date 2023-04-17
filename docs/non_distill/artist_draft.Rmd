@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(rmarkdown)
-read_csv("moma_files/collection-master/Artists.csv") %>% 
+read_csv("../moma_files/collection-master/Artists.csv") %>% 
   mutate(Gender = str_replace_all(Gender, "^male", "Male"),
          Gender = str_replace_all(Gender, "^female", "Female"), 
          Gender = str_replace_all(Gender, "Non-binary", "Non-Binary")) -> x
@@ -126,9 +126,19 @@ x %>%
 ### Gross Quality Check: Percent of blank values in each column'
 
 ```{r}
-paged_table(
+
   x %>% 
   summarize(across(everything(), ~ sum(is.na(.)) / length(.))) %>% 
-  mutate(across(everything(), ~paste0(round(.*100, 5), "%")))
-)
+  mutate(BeginDate = 2.389293e-01) %>% 
+  mutate(EndDate = NA) %>% 
+  mutate(across(everything(), ~paste0(round(.*100, 5), if_else(is.na(.), "", "%")))) %>% 
+  unlist 
+
+x %>% 
+  select(BeginDate) %>% 
+  arrange(BeginDate) %>% 
+  group_by(BeginDate) %>% 
+  summarize(n() / length(.$BeginDate)) 
+
+x
 ```
