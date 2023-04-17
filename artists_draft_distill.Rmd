@@ -17,7 +17,6 @@ read_csv("moma_files/collection-master/Artists.csv") %>%
 
 There are 15,243 different artists in the MoMa spreadsheet, Artists.csv. The first 10,00 are listed in the table below.
 
-
 ### Original Table*
 
 ```{r}
