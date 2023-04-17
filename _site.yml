@@ -8,10 +8,10 @@ navbar:
        menu:
        - text: "Overview"
          href: index.html
-       - text: "Artist Data Draft"
+       - text: "Artist Data"
          href: artists_draft_distill.html
-       - text: "Artwork Data Draft"
+       - text: "Artwork Data"
          href: artwork_draft_distill.html
-       - text: "Exhibition Data Draft"
+       - text: "Exhibition Data"
          href: exhibitions_draft_distill.html
 output: distill::distill_article
