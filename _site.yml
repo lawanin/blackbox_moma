@@ -14,4 +14,6 @@ navbar:
          href: artwork_draft_distill.html
        - text: "Exhibition Data"
          href: exhibitions_draft_distill.html
+       - text: "Curator Memorandum"
+         href: curator_memorandum.html
 output: distill::distill_article
