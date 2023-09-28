@@ -1,0 +1,455 @@
+---
+title: "Curator Memorandum"
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(rmarkdown)
+```
+
+```{r}
+read_csv("~/Documents/hbs_job/blackbox_moma/moma_files/exhibition/MoMAExhibitions1929to1989.csv") -> x
+read_csv("~/Documents/hbs_job/blackbox_moma/moma_files/exhibition/MoMADirectorsDepartmentHeads.csv") -> y
+```
+
+Data on all known MoMA exhibitions from 1929-1989 are available on GitHub. These data,
+analyzed in the figures below, give insight into the curatorial teams that make up 
+MoMA exhibitions.
+
+## A. Roles in Exhibitions
+
+The data are said to record all known participants in Exhibitions. The most common
+type of participant in Exhibitions is the "Artist." After these, there 
+are six other roles into which MoMA classifies participants. All the roles, excluding 
+artist, into which MoMA classifies participants are displayed with their frequency
+in the figure below. 
+
+```{r}
+x %>% 
+  filter(ExhibitionRole != "Artist") %>% 
+  group_by(ExhibitionRole) %>% 
+  summarize(n()) %>% 
+  arrange(desc(`n()`)) %>%  
+  ggplot(aes(y = fct_reorder(ExhibitionRole, `n()`), x = `n()`)) +
+  geom_col() +
+   labs(title = "Frequency of Exhibition Roles",
+       subtitle = "Curator, after Artist, is by far the most common role for participants in Exhibitions.",
+       x = "",
+       y = "Exhibition Role",
+       caption = "MoMA (2019)")
+```
+
+The data also record a more detailed role, namely, the "Exhibition Role in Press 
+Release." There, curators and other participants may take on more specific titles, 
+some of the most common of which include "Director", "Selector", or "Organizer."
+
+```{r}
+x %>% 
+  filter(ExhibitionRole != "Artist") %>% 
+  group_by(ExhibitionRoleinPressRelease) %>% 
+  summarize(n()) %>% 
+  arrange(desc(`n()`)) %>% 
+  ggplot(aes(y = fct_reorder(ExhibitionRoleinPressRelease, `n()`), x = `n()`)) +
+  geom_col() +
+  labs(title = "Frequency of Exhibition Roles in Press Releases",
+       x = "",
+       y = "Exhibition Role in Press Release",
+       caption = "MoMA (2019)")
+```
+
+The table and the figures below both describe the times when different Press Release 
+roles for Curators were in use. 
+
+```{r layout="l-page"}
+x %>% 
+  filter(ExhibitionRole == "Curator") %>% 
+  select(ExhibitionID, ExhibitionRoleinPressRelease, ExhibitionBeginDate) %>% 
+  unique() %>% 
+  group_by(ExhibitionRoleinPressRelease) %>%
+  mutate(mean_year = mean(year(mdy(ExhibitionBeginDate))),
+         min_year = min(year(mdy(ExhibitionBeginDate))),
+         max_year = max(year(mdy(ExhibitionBeginDate))))%>% 
+  mutate(median_year = median(year(mdy(ExhibitionBeginDate)))) %>% 
+  group_by(ExhibitionRoleinPressRelease, mean_year, min_year, max_year) %>% 
+  summarize(n()) %>% 
+  arrange(desc(`n()`)) %>% 
+  rename(`Number of Exhibitions in which Role is Used` = `n()`) %>% 
+  rename(`Mean Year of Exhibitions in which Role is Used` = mean_year) %>% 
+  rename(`Earliest Year` = min_year) %>% 
+  rename(`Latest Year` = max_year)  %>% 
+  select(1, 2, 3, 4) -> table1
+
+paged_table(table1)
+```
+
+
+
+
+```{r}
+x %>% 
+  select(ExhibitionID, ExhibitionRoleinPressRelease, ExhibitionBeginDate) %>% 
+  unique() %>% 
+  filter(ExhibitionRoleinPressRelease == "Director" | ExhibitionRoleinPressRelease == "Selector" | ExhibitionRoleinPressRelease == "Organizer" | ExhibitionRoleinPressRelease == "[Curator]") %>% 
+  mutate(ExhibitionBeginDate = year(mdy(ExhibitionBeginDate))) %>% 
+  ggplot(aes(x = factor(ExhibitionRoleinPressRelease, levels = c("Director", "Selector", "Organizer", "[Curator]")), y = ExhibitionBeginDate)) +
+  geom_jitter() +
+  labs(title = "Occurences of 4 Most Common Curator Press Release Roles  over Time",
+       x = "Roles",
+       y = "Year",
+       caption = "MoMA(2019")
+```
+
+
+## B. Number of Participants per Exhibition
+
+Most exhibitions have small teams. Indeed, most exhibitions only have a single non-Artist
+participant, the Curator. The figures below describe, first, how many non-artist participants
+exhibitions tended to have throughout the decades, and, second, how many curators they
+tended to have. 
+
+```{r}
+x %>% 
+  filter(ExhibitionRole != "Artist")  %>% 
+  filter(is.na(ExhibitionRole) == FALSE) %>% 
+  group_by(ExhibitionID, ExhibitionBeginDate) %>% 
+  summarize(n()) %>% 
+  mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>% 
+  mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>% 
+  mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>% 
+  group_by(ExhibitionBeginDate) %>% 
+  mutate(total_in_year = n()) %>% 
+  mutate(number_curators = case_when(
+    `n()` == 1 ~ "1", 
+    `n()` %in% c(2, 3) ~ "2-3",
+    `n()` > 3 ~ "4+"
+  )) %>% 
+  group_by(ExhibitionBeginDate, number_curators, total_in_year) %>% 
+  summarize(percent_of_year = n() / total_in_year) %>% 
+  unique() %>% 
+  ggplot(aes(x = percent_of_year, y = paste0(ExhibitionBeginDate, "s", " (", total_in_year, ")"), fill = factor(number_curators, levels = c("4+", "2-3", "1")))) +
+  geom_col() +
+  geom_text(aes(label = if_else(percent_of_year > .1, paste0(round(percent_of_year, 2) * 100, "%"), "")), position = position_stack(vjust = 0.5)) +
+  scale_x_continuous(labels = scales::percent_format()) +
+  labs(title = "Number of Non-Artists in Exhibitions by Decade",
+       subtitle = "Only exhibitions with at least one listed in an non-artist role considered.",
+       x = "Percent of Exhibitions in Decade", 
+       y = "Decade (No. of Exs.)",
+       fill = "Number of Non-Artist \n Participants in Exhibition",
+       caption = "MoMA (2019)")
+
+x %>% 
+  filter(ExhibitionRole == "Curator")  %>% 
+  filter(is.na(ExhibitionRole) == FALSE) %>%
+  group_by(ExhibitionID, ExhibitionBeginDate) %>% 
+  summarize(n()) %>% 
+  mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>% 
+  mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>% 
+  mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>% 
+  group_by(ExhibitionBeginDate) %>% 
+  mutate(total_in_year = n()) %>% 
+  mutate(number_curators = case_when(
+    `n()` == 1 ~ "1", 
+    `n()` %in% c(2, 3) ~ "2-3",
+    `n()` > 3 ~ "4+"
+  )) %>% 
+  group_by(ExhibitionBeginDate, number_curators, total_in_year) %>% 
+  summarize(percent_of_year = n() / total_in_year) %>% 
+  unique() %>% 
+  ggplot(aes(x = percent_of_year, y = paste0(ExhibitionBeginDate, "s", " (", total_in_year, ")"), fill = factor(number_curators, levels = c("4+", "2-3", "1")))) +
+  geom_col() +
+  geom_text(aes(label = if_else(percent_of_year > .1, paste0(round(percent_of_year, 2) * 100, "%"), "")), position = position_stack(vjust = 0.5)) +
+  scale_x_continuous(labels = scales::percent_format()) +
+  labs(title = "Number of Curators in Exhibitions by Decade",
+       subtitle = "Only exhibitions with at least one listed in an curator role considered.",
+       x = "Percent of Exhibitions in Decade", 
+       y = "Decade (No. of Exs.)",
+       fill = "Number of Curators in Exhibition",
+       caption = "MoMA (2019)")
+```
+
+## C. Number of Exhibitions per Curator
+
+In the data, there are 320 unique curators involved in all the exhibitions from 1929-1989.
+The figures below characterize individual curators by the number of exhibitions in which
+each has been involved. In general, the majority of curators have only been involved with a single 
+exhibition, whereas the top 5% of most exhibited curators have exhibited about 47.7% percent of the time.
+
+In the figures below, there are decile values for the number of exhibition for each curator. Below that, the share of the top 5% is calculated for each score.
+
+Curator Percentiles for Number of Exhibitions per Curator for All Years:
+
+
+```{r}
+x %>%
+  filter(ExhibitionRole == "Curator") %>%
+  group_by(DisplayName) %>%
+  summarize(n()) %>%
+  arrange(desc(`n()`)) -> z
+
+x %>%
+  mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+  mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+  mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+  filter(ExhibitionBeginDate %in% c(1970, 1980)) %>%
+  filter(ExhibitionRole == "Curator") %>%
+  group_by(DisplayName) %>%
+  summarize(`n()` = n()) %>%
+  arrange(desc(`n()`)) -> z2
+
+x %>%
+  mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+  mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+  mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+  filter(ExhibitionBeginDate %in% c(1950, 1960)) %>%
+  filter(ExhibitionRole == "Curator") %>%
+  group_by(DisplayName) %>%
+  summarize(`n()` = n()) %>%
+  arrange(desc(`n()`)) -> z3
+
+
+x %>%
+  mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+  mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+  mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+  filter(ExhibitionBeginDate %in% c(1930, 1940)) %>%
+  filter(ExhibitionRole == "Curator") %>%
+  group_by(DisplayName) %>%
+  summarize(`n()` = n()) %>%
+  arrange(desc(`n()`)) -> z4
+
+# Top 5% most exhibited curators exhibited 47.7% of the time
+
+z %>%
+  group_by(`n()` >= 18) %>%
+  summarize(bum = sum(`n()`)) %>%
+  mutate(sum_perc = bum / sum(bum))  -> za
+
+z2 %>%
+  group_by(`n()` >= 26) %>%
+  summarize(bum = sum(`n()`)) %>%
+  mutate(sum_perc = bum / sum(bum)) -> zb
+
+z3 %>%
+  group_by(`n()` >= 21) %>%
+  summarize(bum = sum(`n()`)) %>%
+  mutate(sum_perc = bum / sum(bum)) -> zc
+
+z4 %>%
+  group_by(`n()` >= 11) %>%
+  summarize(bum = sum(`n()`)) %>%
+  mutate(sum_perc = bum / sum(bum)) -> zd
+
+
+quantile(type = 1, z$`n()`, c(seq(0, .9, .1), .95, .99, 1))
+```
+
+```{r}
+paste0("The top 5% of all curators were exhibited ", round(za$sum_perc[2], 2) * 100, "% of the time.")
+```
+
+```{r}
+paste0("During the 1970s and 1980s, the top 5% of curators are exhibited ", round(zb$sum_perc[2], 2) * 100, "% of the time.")
+```
+
+```{r}
+paste0("During the 1950s and 1960s, the top 5% of curators are exhibited ", round(zc$sum_perc[2], 2) * 100, "% of the time.")
+```
+
+```{r}
+paste0("During the 1930s and 1940s, the top 5% of curators are exhibited ", round(zd$sum_perc[2], 2) * 100, "% of the time.")
+```
+
+## D.  Number of Unique Exhibiting Curators at a Given  Time
+
+The figures below show the number of unique curators that were involved in 
+exhibitions that began in each year and in each decade, respectively. 
+
+```{r}
+x %>% 
+  mutate(ExhibitionBeginDate = year(mdy(ExhibitionBeginDate))) %>% 
+  filter(ExhibitionRole == "Curator") %>% 
+  select(DisplayName, ExhibitionBeginDate) %>% 
+  unique() %>% 
+  group_by(ExhibitionBeginDate) %>% 
+  summarize(n()) %>% 
+  ggplot(aes(x = ExhibitionBeginDate, y = `n()`)) +
+  geom_point() +
+  scale_x_continuous(minor_breaks = seq(1929, 1989, 1), breaks = seq(1930, 1980, 10)) +
+  labs(title = "Number of Unique Exhibiting Curators by Year",
+       x = "Year", 
+       y = "Number of Exhibiting Curators", 
+       caption = "MoMA (2019)")
+
+x %>% 
+  mutate(ExhibitionBeginDate = if_else(year(mdy(ExhibitionBeginDate)) == 1929, 1930, year(mdy(ExhibitionBeginDate)) - year(mdy(ExhibitionBeginDate)) %% 10)) %>% 
+  filter(ExhibitionRole == "Curator") %>% 
+  select(DisplayName, ExhibitionBeginDate) %>% 
+  unique() %>% 
+  group_by(ExhibitionBeginDate) %>% 
+  summarize(n()) %>% 
+  ggplot(aes(x = ExhibitionBeginDate, y = `n()`)) +
+  scale_x_continuous(breaks = seq(1930, 1980, 10)) +
+  geom_col() +
+  labs(title = "Number of Unique Exhibiting Curators by Decade",
+       x = "Year", 
+       y = "Number of Exhibiting Curators", 
+       caption = "MoMA (2019)")
+```
+
+
+```{r}
+# x %>%
+#   filter(ExhibitionRole == "Artist") %>%
+#   group_by(DisplayName) %>%
+#   summarize(n()) %>%
+#   arrange(desc(`n()`)) -> d
+# 
+# x %>%
+#   mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+#   filter(ExhibitionBeginDate %in% c(1970, 1980)) %>%
+#   filter(ExhibitionRole == "Artist") %>%
+#   group_by(DisplayName) %>%
+#   summarize(`n()` = n()) %>%
+#   arrange(desc(`n()`)) -> d2
+# 
+# x %>%
+#   mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+#   filter(ExhibitionBeginDate %in% c(1950, 1960)) %>%
+#   filter(ExhibitionRole == "Artist") %>%
+#   group_by(DisplayName) %>%
+#   summarize(`n()` = n()) %>%
+#   arrange(desc(`n()`)) -> d3
+# 
+# 
+# x %>%
+#   mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+#   filter(ExhibitionBeginDate %in% c(1930, 1940)) %>%
+#   filter(ExhibitionRole == "Artist") %>%
+#   group_by(DisplayName) %>%
+#   summarize(`n()` = n()) %>%
+#   arrange(desc(`n()`)) -> d4
+# 
+# # Top 5% most exhibited curators exhibited 47.7% of the time
+# 
+# d %>%
+#   group_by(`n()` >= 9) %>%
+#   summarize(bum = sum(`n()`)) %>%
+#   mutate(sum_perc = bum / sum(bum))  -> da
+# d2 %>%
+#   group_by(`n()` >= 11) %>%
+#   summarize(bum = sum(`n()`)) %>%
+#   mutate(sum_perc = bum / sum(bum)) -> db
+# 
+# d3 %>%
+#   group_by(`n()` >= 8) %>%
+#   summarize(bum = sum(`n()`)) %>%
+#   mutate(sum_perc = bum / sum(bum)) -> dc
+# 
+# d4 %>%
+#   group_by(`n()` >= 6) %>%
+#   summarize(bum = sum(`n()`)) %>%
+#   mutate(sum_perc = bum / sum(bum)) -> dd
+# 
+# 
+# quantile(type = 1, d$`n()`, c(seq(0, .9, .1), .95, .99, 1))
+# 
+# paste0("The top 5% of all artists are exhibited ", round(da$sum_perc[2], 2) * 100, "% of the time.")
+# paste0("The top 5% of artists from 1970 - 1980 exhibitions are exhibited ", round(db$sum_perc[2], 2) * 100, "% of the time.")
+# paste0("The top 5% of artists from 1950 - 1960 exhibitions are exhibited ", round(dc$sum_perc[2], 2) * 100, "% of the time.")
+# paste0("The top 5% of artists from 1930 - 1940 exhiitions are exhibited ", round(dd$sum_perc[2], 2) * 100, "% of the time.")
+```
+
+```{r}
+# x %>%
+#   filter(ExhibitionRole == "Artist")  %>%
+#   group_by(ExhibitionID, ExhibitionBeginDate) %>%
+#   summarize(n()) %>%
+#   mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>%
+#   mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>%
+#   ggplot(aes(ExhibitionBeginDate, `n()`)) +
+#   geom_jitter(height = .3) +
+#   scale_x_continuous(breaks = seq(1930, 1990, 10)) 
+# 
+# x %>% 
+#   filter(ExhibitionRole == "Artist")  %>% 
+#   group_by(ExhibitionID, ExhibitionBeginDate) %>% 
+#   summarize(n()) %>% 
+#   mutate(ExhibitionBeginDate = mdy(ExhibitionBeginDate)) %>% 
+#   mutate(ExhibitionBeginDate = year(ExhibitionBeginDate)) %>% 
+#   mutate(ExhibitionBeginDate = if_else(ExhibitionBeginDate == 1929, 1930, ExhibitionBeginDate - ExhibitionBeginDate %% 10)) %>% 
+#   group_by(ExhibitionBeginDate) %>% 
+#   mutate(total_in_year = n()) %>% 
+#   mutate(number_curators = case_when(
+#     `n()` == 1 ~ "1", 
+#     `n()` %in% c(2:50) ~ "2-50",
+#     `n()` > 50 ~ "51+"
+#   )) %>% 
+#   group_by(ExhibitionBeginDate, number_curators, total_in_year) %>% 
+#   summarize(percent_of_year = n() / total_in_year) %>% 
+#   unique() %>% 
+#   ggplot(aes(x = percent_of_year, y = paste0(ExhibitionBeginDate, "s", " (", total_in_year, ")"), fill = factor(number_curators, levels = c("51+", "2-50", "1")))) +
+#   geom_col() +
+#   geom_text(aes(label = if_else(percent_of_year > .1, paste0(round(percent_of_year, 2) * 100, "%"), "")), position = position_stack(vjust = 0.5)) +
+#   scale_x_continuous(labels = scales::percent_format()) +
+#   labs(title = "Number of Artists in Exhibitions by Decade",
+#        x = "Percent of Exhibitions in Decade", 
+#        y = "Decade (No. of Exs.)",
+#        fill = "Number of Artists in Exhibition",
+#        caption = "MoMA (2019)")
+```
+
+## E. Directors and Department Heads
+
+In addition to the Exhibition data, MoMA has also published a dataset listing information 
+about museum directors and department heads. These data contain information for 52 
+unique individuals, 32 of whom are recorded to be involved in exhibitions in the Exhibition dataset.
+
+Directors of the Museum do not always possess Exhibition Role in Press Relase of Director, 
+and some of those who are listed as Directors in the Exhibition Role in Press Release 
+are not Directors of the Museum in this dataset. 
+
+## F. Data Structure for Coarse-Grained Testing of Questions
+
+We would like to receive data from MoMA on the curatorial teams for more recent years and the individual
+works in their exhibitions, so that we can measure, among other things, the effect 
+that different curatorial teams have on different aspects of the exhibitions as 
+a collection of works. 
+
+These data can be restructured such that it provides us the same general framework 
+at a coarser grained. Assuming the accuracy and completeness of the participants
+listed for each exhibition, we have data on the composition of the curatorial teams
+from 1929-1989. In stead of all the  works in each exhibition, we have the
+all the artists in each exhibition, which might be thought of as a coarser grained proxy
+of the works in the exhibition, to which comparable measures (artist's average value of artwork, 
+frequency of artwork in exhibition) may be added as a proxy.
+
+Given that some of these comparable measures could be obtained independent of MoMA 
+(e.g., artist's average value of frequency of artwork in exhibitions), it may be 
+possible to begin preliminary exploration of our questions using these data. 
+
+```{r}
+# x %>% 
+#   group_by(ExhibitionID) %>% 
+#   filter(any(ExhibitionRole == "Curator")) %>% 
+#   filter(ExhibitionRole %in% c("Curator", "Artist")) %>% 
+#   mutate(curators = if_else(ExhibitionRole == "Curator", DisplayName, NA)) %>% 
+#   mutate(curator = paste0(curators[!is.na(curators)], collapse = ";;", recycle0 = TRUE)) %>% 
+#   separate_rows(curator, sep = ";;")%>% 
+#   filter(ExhibitionRole == "Artist") %>% 
+#   select(ExhibitionID, curator, ExhibitionRole, DisplayName) 
+```
+
+
+
