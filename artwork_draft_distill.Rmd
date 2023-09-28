@@ -228,7 +228,23 @@ round(quantile((z %>% filter(`n()` >= 17))$range, probs = c(seq(0, .9, .1), .95,
 
 
 
+```{r}
+x %>% 
+  select(CreditLine) %>% 
+  mutate(CreditLine = tolower(CreditLine)) %>% 
+  separate_rows(CreditLine, sep = " ") %>% 
+  mutate(CreditLine = str_replace_all(CreditLine, "[^a-z]", "")) %>% 
+  group_by(CreditLine) %>% 
+  summarize(number = n()) %>% 
+  arrange(desc(number)) %>%
+  filter(!(CreditLine %in% c("of", "the", "and", "e", "", "c", "in", "on"))) 
 
+x %>% 
+  select(CreditLine) %>% 
+  filter(str_detect(CreditLine, "[Cc]ollection"))
+
+
+```
 
 
 

@@ -23,6 +23,7 @@
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
@@ -49,16 +50,17 @@ pre.numberSource code > span > a:first-child::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {   }
+  { color: #00769e; background-color: #f1f3f5; }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
+code span { color: #00769e; } /* Normal */
 code span.al { color: #ad0000; } /* Alert */
 code span.an { color: #5e5e5e; } /* Annotation */
-code span.at { color: #20794d; } /* Attribute */
+code span.at { color: #657422; } /* Attribute */
 code span.bn { color: #ad0000; } /* BaseN */
 code span.bu { } /* BuiltIn */
-code span.cf { color: #007ba5; } /* ControlFlow */
+code span.cf { color: #00769e; } /* ControlFlow */
 code span.ch { color: #20794d; } /* Char */
 code span.cn { color: #8f5902; } /* Constant */
 code span.co { color: #5e5e5e; } /* Comment */
@@ -72,17 +74,18 @@ code span.fl { color: #ad0000; } /* Float */
 code span.fu { color: #4758ab; } /* Function */
 code span.im { } /* Import */
 code span.in { color: #5e5e5e; } /* Information */
-code span.kw { color: #007ba5; } /* Keyword */
+code span.kw { color: #00769e; } /* Keyword */
 code span.op { color: #5e5e5e; } /* Operator */
-code span.ot { color: #007ba5; } /* Other */
+code span.ot { color: #00769e; } /* Other */
 code span.pp { color: #ad0000; } /* Preprocessor */
-code span.sc { color: #20794d; } /* SpecialChar */
+code span.sc { color: #5e5e5e; } /* SpecialChar */
 code span.ss { color: #20794d; } /* SpecialString */
 code span.st { color: #20794d; } /* String */
 code span.va { color: #111111; } /* Variable */
 code span.vs { color: #20794d; } /* VerbatimString */
 code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </style>
+
 
   <!--radix_placeholder_meta_tags-->
   <title>Museum Slack Study Data: MoMA Data Set Overview</title>
@@ -451,9 +454,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
   </style>
 
-  <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
-  <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet"/>
-  <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet"/>
+  <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+  <link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet"/>
+  <link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet"/>
   <script src="site_libs/headroom-0.9.4/headroom.min.js"></script>
   <script src="site_libs/autocomplete-0.37.1/autocomplete.min.js"></script>
   <script src="site_libs/fuse-6.4.1/fuse.min.js"></script>
@@ -782,6 +785,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   d-article table.gt_table td,
   d-article table.gt_table th {
     border-bottom: none;
+    font-size: 100%;
   }
 
   .html-widget {
@@ -1023,10 +1027,6 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     position: relative;
     margin-bottom: 2.5em;
     margin-top: 1.5em;
-  }
-
-  .figure img {
-    width: 100%;
   }
 
   .figure .caption {
@@ -1858,7 +1858,22 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
       // hoverable references
       $('span.citation[data-cites]').each(function() {
-        var refHtml = $('#ref-' + $(this).attr('data-cites')).html();
+        const citeChild = $(this).children()[0]
+        // Do not process if @xyz has been used without escaping and without bibliography activated
+        // https://github.com/rstudio/distill/issues/466
+        if (citeChild === undefined) return true
+
+        if (citeChild.nodeName == "D-FOOTNOTE") {
+          var fn = citeChild
+          $(this).html(fn.shadowRoot.querySelector("sup"))
+          $(this).id = fn.id
+          fn.remove()
+        }
+        var refs = $(this).attr('data-cites').split(" ");
+        var refHtml = refs.map(function(ref) {
+          // Could use CSS.escape too here, we insure backward compatibility in navigator
+          return "<p>" + $('div[id="ref-' + ref + '"]').html() + "</p>";
+        }).join("\n");
         window.tippy(this, {
           allowHTML: true,
           content: refHtml,
@@ -1869,6 +1884,31 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
           placement: 'bottom-start'
         });
       });
+
+      // fix footnotes in tables (#411)
+      // replacing broken distill.pub feature
+      $('table d-footnote').each(function() {
+        // we replace internal showAtNode methode which is triggered when hovering a footnote
+        this.hoverBox.showAtNode = function(node) {
+          // ported from https://github.com/distillpub/template/pull/105/files
+          calcOffset = function(elem) {
+              let x = elem.offsetLeft;
+              let y = elem.offsetTop;
+              // Traverse upwards until an `absolute` element is found or `elem`
+              // becomes null.
+              while (elem = elem.offsetParent && elem.style.position != 'absolute') {
+                  x += elem.offsetLeft;
+                  y += elem.offsetTop;
+              }
+
+              return { left: x, top: y };
+          }
+          // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetTop
+          const bbox = node.getBoundingClientRect();
+          const offset = calcOffset(node);
+          this.show([offset.left + bbox.width, offset.top + bbox.height]);
+        }
+      })
 
       // clear polling timer
       clearInterval(tid);
@@ -1968,6 +2008,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     // mark non-body figures created by knitr chunks as 100% width
     $('.layout-chunk').each(function(i, val) {
       var figures = $(this).find('img, .html-widget');
+      // ignore leaflet img layers (#106)
+      figures = figures.filter(':not(img[class*="leaflet"])')
       if ($(this).attr('data-layout') !== "l-body") {
         figures.css('width', '100%');
       } else {
@@ -1990,7 +2032,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     // get rid of index.html references in header
     if (window.location.protocol !== "file:") {
       $('.distill-site-header a[href]').each(function(i,val) {
-        $(this).attr('href', $(this).attr('href').replace("index.html", "./"));
+        $(this).attr('href', $(this).attr('href').replace(/^index[.]html/, "./"));
       });
     }
 
@@ -2029,7 +2071,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </script>
 
   <!--/radix_placeholder_distill-->
-  <script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+  <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
   <script src="site_libs/popper-2.6.0/popper.min.js"></script>
   <link href="site_libs/tippy-6.2.7/tippy.css" rel="stylesheet" />
   <link href="site_libs/tippy-6.2.7/tippy-light-border.css" rel="stylesheet" />
@@ -2068,9 +2110,10 @@ MoMA Task 1
 </button>
 <div class="nav-dropdown-content">
 <a href="index.html">Overview</a>
-<a href="artists_draft_distill.html">Artist Data Draft</a>
-<a href="artwork_draft_distill.html">Artwork Data Draft</a>
-<a href="exhibitions_draft_distill.html">Exhibition Data Draft</a>
+<a href="artists_draft_distill.html">Artist Data</a>
+<a href="artwork_draft_distill.html">Artwork Data</a>
+<a href="exhibitions_draft_distill.html">Exhibition Data</a>
+<a href="curator_memorandum.html">Curator Memorandum</a>
 </div>
 </div>
 <a href="javascript:void(0);" class="nav-toggle">&#9776;</a>
@@ -2094,46 +2137,72 @@ MoMA Task 1
 
 </div>
 <h2 id="executive-summary">Executive Summary</h2>
-<p>The MoMA dataset is likely the most complete available source for information on the museum’s artwork, artists, and older exhibitions.</p>
-<p>The dataset has information in most of the preliminary categories of information identified for the project, particularly, institutions, artists, artowrks, curators, supporters, older exhibitions, and dates.</p>
+<p>The MoMA dataset is likely the most complete available source for information on
+the museum’s artwork, artists, and older exhibitions.</p>
+<p>The dataset has information in most of the preliminary categories of information
+identified for the project, particularly, institutions, artists, artowrks,
+curators, supporters, older exhibitions, and dates.</p>
 <p>The dataset, however, also lacks information in some of these preliminary categories of information:</p>
 <ul>
-<li><p>While the information on artworks and artists is current and regularly updated, information on exhibitions is only available for exhibitions that occurred in 1989 or before.</p></li>
-<li><p>Outside of the department of a work, no further “collection” or subsample is given in the dataset as it is.</p></li>
+<li><p>While the information on artworks and artists is current and regularly updated,
+information on exhibitions is only available for exhibitions that occurred in 1989
+or before.</p></li>
+<li><p>Outside of the department of a work, no further “collection” or subsample is
+given in the dataset as it is.</p></li>
 <li><p>There is no information on ticket sales of exhibitions or their critical acclaim.</p></li>
-<li><p>Aside from the credit lines attached to specific works, there is no information in the dataset on acts of donation.</p></li>
-<li><p>Few fields are 100% complete or standardized. These missing fields can pile up (v.s. below with curators). Even when information is available in the vast majority of cases, occasional gaps and errors will limit accuracy.</p></li>
+<li><p>Aside from the credit lines attached to specific works, there is no information
+in the dataset on acts of donation.</p></li>
+<li><p>Few fields are 100% complete or standardized. These missing fields can pile up
+(v.s. below with curators). Even when information is available in the vast majority
+of cases, occasional gaps and errors will limit accuracy.</p></li>
 </ul>
 <h3 id="institutions">1. Institutions</h3>
 <p>The data set gives information on a single institution: The Modern Museum of American Art (MoMA)</p>
 <h3 id="artists">2. Artists</h3>
-<p>The dataset includes a thorough (v.i.) listing of artists with artworks in the MoMA. For most, the artist’s name, nationality, gender, birth year, and death year are in the data set.</p>
+<p>The dataset includes a thorough (v.i.) listing of artists with artworks in the MoMA.
+For most, the artist’s name, nationality, gender, birth year, and death year are
+in the data set.</p>
 <h3 id="artworks">3. Artworks</h3>
 <p>The dataset includes a thorough listing of artworks in the MoMA. According to<br />
 <a href="https://github.com/MuseumofModernArt/collection/blob/master/README.md">documentation</a> provided by the MoMA with the dataset, the Museum’s website contains around 98,000 records, whereas the dataset contains around 140,000.</p>
-<p>For most artworks, the title of the work, the artist, the date, classification (painting, drawing, etc.), medium (e.g. “Ink and cut-and-pasted painted pages on paper”), some form of dimensions, credit line (e.g. Purchase; Gift of the architect in honor of Lily Auchincloss), department and date of acquisition are avilable in the data set.</p>
+<p>For most artworks, the title of the work, the artist, the date, classification (painting, drawing, etc.),
+medium (e.g. “Ink and cut-and-pasted painted pages on paper”), some form of dimensions,
+credit line (e.g. Purchase; Gift of the architect in honor of Lily Auchincloss),
+department and date of acquisition are avilable in the data set.</p>
 <h3 id="curators">4. Curators</h3>
-<p>There is someone listed in the role of curator for about 75% of the 1,735 exhibitions in the dataset. For most of these, a role as described in the press release are available in the data set.</p>
-<p>For roughly half of these, nationality, gender, birth year, and death year are available in the data set.</p>
-<p>For a minority of these, senior titles at the museum and dates of tenure of those titles are available in the data set.</p>
+<p>There is someone listed in the role of curator for about 75% of the 1,735 exhibitions
+in the dataset. For most of these, a role as described in the press release are available
+in the data set.</p>
+<p>For roughly half of these, nationality, gender, birth year, and death year are
+available in the data set.</p>
+<p>For a minority of these, senior titles at the museum and dates of tenure of those titles
+are available in the data set.</p>
 <div class="layout-chunk" data-layout="l-body">
 
 </div>
 <h3 id="collections">5. Collections</h3>
 <p>The only subsample in the dataset as it is given is Department.</p>
-<p>One could, based on other information in the dataset, create and describe characteristics of a subsample or “collection” of works, e.g. works by American artists.</p>
+<p>One could, based on other information in the dataset, create and describe
+characteristics of a subsample or “collection” of works, e.g. works by American artists.</p>
 <h3 id="supporters">6. Supporters</h3>
-<p>About 99% of artworks in the MoMA have a listed credit line. About 82% of these point to an individual donor or foundation. Examples of those that do not themselves point to an individual include “Purchase” or “Gift of the artist.”</p>
-<p>About half of credit lines pointing to individual donors or foundations have donated only a single work. The top 10% of credit lines by most works in the museum account for 65% of works in the museum.</p>
+<p>About 99% of artworks in the MoMA have a listed credit line. About 82% of these point
+to an individual donor or foundation. Examples of those that do not themselves point
+to an individual include “Purchase” or “Gift of the artist.”</p>
+<p>About half of credit lines pointing to individual donors or foundations have donated only
+a single work. The top 10% of credit lines by most works in the museum account for
+65% of works in the museum.</p>
 <p>Percentiles: Works per Credit Line</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre><code>   0%   10%   20%   30%   40%   50%   60%   70%   80%   90%   95%   99%  100% 
     1     1     1     1     1     1     2     3     6    17    38   199 11256 </code></pre>
 </div>
-<p>By taking information from works associated with the credit line, one is also able to find information on when and for how long a credit line was active.</p>
+<p>By taking information from works associated with the credit line, one is also able
+to find information on when and for how long a credit line was active.</p>
 <h3 id="exhibitions">7. Exhibitions</h3>
-<p>The dataset provides a list of all MoMA exhibitions form 1929 to 1989. For most of these, the title of the exhibition and the opening and closing dates are available.</p>
-<p>People and institutions involved in each exhibition, their roles (e.g. artists, curators, designers), and other information (v.s.) are available.</p>
+<p>The dataset provides a list of all MoMA exhibitions form 1929 to 1989. For most of these,
+the title of the exhibition and the opening and closing dates are available.</p>
+<p>People and institutions involved in each exhibition, their roles (e.g. artists, curators, designers),
+and other information (v.s.) are available.</p>
 <h3 id="ticket-sales">8. Ticket Sales</h3>
 <p>The dataset contains no information on tickets sold by exhibitions.</p>
 <h3 id="critical-acclaim">9. Critical Acclaim</h3>
@@ -2150,7 +2219,8 @@ MoMA Task 1
 <li>Birth and Death Year of Museum Directors and Department Heads</li>
 </ul>
 <h3 id="donations">11. Donations</h3>
-<p>Outside of the names of credit lines associated with specific works (v.s.), there is no information on specific contributions to the institution.</p>
+<p>Outside of the names of credit lines associated with specific works (v.s.), there
+is no information on specific contributions to the institution.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
