@@ -91,6 +91,11 @@ paged_table(table1)
 
 
 
+
+
+
+
+
 ```{r}
 x %>% 
   select(ExhibitionID, ExhibitionRoleinPressRelease, ExhibitionBeginDate) %>% 
@@ -102,7 +107,7 @@ x %>%
   labs(title = "Occurences of 4 Most Common Curator Press Release Roles  over Time",
        x = "Roles",
        y = "Year",
-       caption = "MoMA(2019")
+       caption = "MoMA (2019)")
 ```
 
 
