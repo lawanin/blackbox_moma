@@ -1,6 +1,7 @@
 ---
 title: "Curator Memorandum"
 date: "`r Sys.Date()`"
+author: "Nosa Lawani"
 output: distill::distill_article
 ---
 
@@ -23,7 +24,7 @@ MoMA exhibitions.
 
 ## A. Roles in Exhibitions
 
-The data are said to record all known participants in Exhibitions. The most common
+The data are said to record participants in all known Exhibitions. The most common
 type of participant in Exhibitions is the "Artist." After these, there 
 are six other roles into which MoMA classifies participants. All the roles, excluding 
 artist, into which MoMA classifies participants are displayed with their frequency
@@ -38,7 +39,7 @@ x %>%
   ggplot(aes(y = fct_reorder(ExhibitionRole, `n()`), x = `n()`)) +
   geom_col() +
    labs(title = "Frequency of Exhibition Roles",
-       subtitle = "Curator, after Artist, is by far the most common role for participants in Exhibitions.",
+       subtitle = "Curator, after Artist, is by far the most common role in Exhibitions.",
        x = "",
        y = "Exhibition Role",
        caption = "MoMA (2019)")
@@ -46,7 +47,7 @@ x %>%
 
 The data also record a more detailed role, namely, the "Exhibition Role in Press 
 Release." There, curators and other participants may take on more specific titles, 
-some of the most common of which include "Director", "Selector", or "Organizer."
+some of the most common of which include "Director", "Selector", and "Organizer."
 
 ```{r}
 x %>% 
@@ -63,7 +64,7 @@ x %>%
 ```
 
 The table and the figures below both describe the times when different Press Release 
-roles for Curators were in use. 
+Roles for Curators were in use. 
 
 ```{r layout="l-page"}
 x %>% 
@@ -107,7 +108,7 @@ x %>%
 
 ## B. Number of Participants per Exhibition
 
-Most exhibitions have small teams. Indeed, most exhibitions only have a single non-Artist
+Most exhibitions have small teams. Indeed, most exhibitions only have a single non-artist
 participant, the Curator. The figures below describe, first, how many non-artist participants
 exhibitions tended to have throughout the decades, and, second, how many curators they
 tended to have. 
@@ -139,7 +140,7 @@ x %>%
        subtitle = "Only exhibitions with at least one listed in an non-artist role considered.",
        x = "Percent of Exhibitions in Decade", 
        y = "Decade (No. of Exs.)",
-       fill = "Number of Non-Artist \n Participants in Exhibition",
+       fill = "Number of Non-Artists in Exhibition",
        caption = "MoMA (2019)")
 
 x %>% 
@@ -176,10 +177,10 @@ x %>%
 
 In the data, there are 320 unique curators involved in all the exhibitions from 1929-1989.
 The figures below characterize individual curators by the number of exhibitions in which
-each has been involved. In general, the majority of curators have only been involved with a single 
+each has been involved. In general, the majority of curators has only been involved with a single 
 exhibition, whereas the top 5% of most exhibited curators have exhibited about 47.7% percent of the time.
 
-In the figures below, there are decile values for the number of exhibition for each curator. Below that, the share of the top 5% is calculated for each score.
+In the figures below, there are decile values for the number of exhibitions per curator. Below that, the share of the top 5% is calculated for each score.
 
 Curator Percentiles for Number of Exhibitions per Curator for All Years:
 
@@ -253,21 +254,21 @@ paste0("The top 5% of all curators were exhibited ", round(za$sum_perc[2], 2) * 
 ```
 
 ```{r}
-paste0("During the 1970s and 1980s, the top 5% of curators are exhibited ", round(zb$sum_perc[2], 2) * 100, "% of the time.")
+paste0("During the 1970s and 1980s, the top 5% of curators were exhibited ", round(zb$sum_perc[2], 2) * 100, "% of the time.")
 ```
 
 ```{r}
-paste0("During the 1950s and 1960s, the top 5% of curators are exhibited ", round(zc$sum_perc[2], 2) * 100, "% of the time.")
+paste0("During the 1950s and 1960s, the top 5% of curators were exhibited ", round(zc$sum_perc[2], 2) * 100, "% of the time.")
 ```
 
 ```{r}
-paste0("During the 1930s and 1940s, the top 5% of curators are exhibited ", round(zd$sum_perc[2], 2) * 100, "% of the time.")
+paste0("During the 1930s and 1940s, the top 5% of curators were exhibited ", round(zd$sum_perc[2], 2) * 100, "% of the time.")
 ```
 
 ## D.  Number of Unique Exhibiting Curators at a Given  Time
 
 The figures below show the number of unique curators that were involved in 
-exhibitions that began in each year and in each decade, respectively. 
+exhibitions that began in a given year and a given decade, respectively. 
 
 ```{r}
 x %>% 
@@ -293,7 +294,7 @@ x %>%
   group_by(ExhibitionBeginDate) %>% 
   summarize(n()) %>% 
   ggplot(aes(x = ExhibitionBeginDate, y = `n()`)) +
-  scale_x_continuous(breaks = seq(1930, 1980, 10)) +
+  scale_x_continuous(breaks = seq(1930, 1980, 10), labels = paste0(seq( 1930, 1980, 10), "s"))  +
   geom_col() +
   labs(title = "Number of Unique Exhibiting Curators by Decade",
        x = "Year", 
@@ -412,32 +413,32 @@ x %>%
 
 ## E. Directors and Department Heads
 
-In addition to the Exhibition data, MoMA has also published a dataset listing information 
+In addition to the exhibition data, MoMA has also published a dataset listing information 
 about museum directors and department heads. These data contain information for 52 
 unique individuals, 32 of whom are recorded to be involved in exhibitions in the Exhibition dataset.
 
-Directors of the Museum do not always possess Exhibition Role in Press Relase of Director, 
-and some of those who are listed as Directors in the Exhibition Role in Press Release 
-are not Directors of the Museum in this dataset. 
+Directors of the Museum do not always possess the Exhibition Role in Press Release of Director, 
+and many of those who are listed as Directors in the Exhibition Role in Press Release 
+are not recorded as Directors of the Museum. 
 
-## F. Data Structure for Coarse-Grained Testing of Questions
+## F. Data Structure for Coarse-Grained Testing of Research Questions
 
 We would like to receive data from MoMA on the curatorial teams for more recent years and the individual
 works in their exhibitions, so that we can measure, among other things, the effect 
 that different curatorial teams have on different aspects of the exhibitions as 
 a collection of works. 
 
-These data can be restructured such that it provides us the same general framework 
-at a coarser grained. Assuming the accuracy and completeness of the participants
+The Github spreadsheet analyzed herein can be restructured such that it provides us the same general framework 
+at a coarser grain. Assuming the accuracy and completeness of the participants
 listed for each exhibition, we have data on the composition of the curatorial teams
-from 1929-1989. In stead of all the  works in each exhibition, we have the
+from 1929-1989. In lieu of having all the  works in each exhibition, we have
 all the artists in each exhibition, which might be thought of as a coarser grained proxy
 of the works in the exhibition, to which comparable measures (artist's average value of artwork, 
-frequency of artwork in exhibition) may be added as a proxy.
+frequency of artwork in exhibition) may be added.
 
 Given that some of these comparable measures could be obtained independent of MoMA 
-(e.g., artist's average value of frequency of artwork in exhibitions), it may be 
-possible to begin preliminary exploration of our questions using these data. 
+(e.g., artist's average value), it may be possible to begin preliminary exploration
+of our questions using these data. 
 
 ```{r}
 # x %>% 
