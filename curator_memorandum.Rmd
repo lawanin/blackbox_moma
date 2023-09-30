@@ -270,7 +270,7 @@ paste0("During the 1950s and 1960s, the top 5% of curators were exhibited ", rou
 paste0("During the 1930s and 1940s, the top 5% of curators were exhibited ", round(zd$sum_perc[2], 2) * 100, "% of the time.")
 ```
 
-## D.  Number of Unique Exhibiting Curators at a Given  Time
+## D.  Number of Unique Exhibiting Curators at a Given Time
 
 The figures below show the number of unique curators that were involved in 
 exhibitions that began in a given year and a given decade, respectively. 
@@ -302,7 +302,7 @@ x %>%
   scale_x_continuous(breaks = seq(1930, 1980, 10), labels = paste0(seq( 1930, 1980, 10), "s"))  +
   geom_col() +
   labs(title = "Number of Unique Exhibiting Curators by Decade",
-       x = "Year", 
+       x = "Decade", 
        y = "Number of Exhibiting Curators", 
        caption = "MoMA (2019)")
 ```
