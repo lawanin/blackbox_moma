@@ -72,7 +72,7 @@ x %>%
   select(ExhibitionID, ExhibitionRoleinPressRelease, ExhibitionBeginDate) %>% 
   unique() %>% 
   group_by(ExhibitionRoleinPressRelease) %>%
-  mutate(mean_year = mean(year(mdy(ExhibitionBeginDate))),
+  mutate(mean_year = round(mean(year(mdy(ExhibitionBeginDate))), 1),
          min_year = min(year(mdy(ExhibitionBeginDate))),
          max_year = max(year(mdy(ExhibitionBeginDate))))%>% 
   mutate(median_year = median(year(mdy(ExhibitionBeginDate)))) %>% 
